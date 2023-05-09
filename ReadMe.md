@@ -4,7 +4,7 @@
 
 ### История
 
-Разработка Scalaris Database была начата в 2007 году в [Институтe Цузе в Берлине](https://www.zib.de/) как экспериментальный проект базы данных ключ-значение на основе распределенной хеш-таблицы при поддержки различных европейских компаний. В этой базе данных разработчики реализовали много сторонних и собственных новых на то время алгоритмических решений и наработок ([[1.2](https://github.com/scalaris-team/scalaris/blob/master/user-dev-guide/main.pdf)] их там кажется больше 50!), что позволило создать первую NoSQL субд, поддерживающую ACID. В 2010 году проект стал открытым на GitHub. С тех пор много было много доработок и улучшений но версию 1.0 так и не смогли добить :( остановившись на 0.9.0, выпущенной в 2016 году. ~~После 2016 года кажется проект умер~~. Так как проект опенсурсный каждый может вложить что-то свое, но в итоге единственное сообщество что развивало эту бд это Институт В Цузе. ~~Жаль что обычным людям довольно сложно понять исходники на ерланге.~~
+Разработка Scalaris Database была начата в 2007 году в [Институтe Цузе в Берлине](https://www.zib.de/) как экспериментальный проект базы данных ключ-значение на основе распределенной хеш-таблицы. В этой Cубд разработчики реализовали много сторонних и собственных новых на то время алгоритмических решений и наработок ([[1.2](https://github.com/scalaris-team/scalaris/blob/master/user-dev-guide/main.pdf)] их там кажется больше 50!), что позволило создать первую NoSQL субд, поддерживающую ACID. В 2010 году проект стал открытым на GitHub. С тех пор много было много доработок и улучшений но версию 1.0 так и не смогли добить :( остановившись на 0.9.0, выпущенной в 2016 году. ~~После 2016 года кажется проект умер~~. Так как проект опенсурсный каждый может вложить что-то свое, но в итоге единственное сообщество что развивало эту бд это Институт В Цузе. ~~Жаль что обычным людям довольно сложно понять исходники на ерланге.~~
 
 В целом уклон этой базы данных был больше на эксперимент, чем на коммерческий продукт, поэтому далее я расскажу про особенные фичи которые я смог вычитать и опробовать из ~~очень подробной~~ документации и копания в исходниках.
 
@@ -49,11 +49,12 @@ Scalaris поддерживает транзакции и ACID наряду с S
 
 Для поднятия субд с несколькими рекликами сначала соберем проект с гитхаба как в документации [[2.1-2.3](https://github.com/scalaris-team/scalaris/blob/master/user-dev-guide/main.pdf)] и запустим следующие команды и директории scalaris/bin:
 
-```sh
-./firstnode.sh
-./joining_node.sh 2
-./joining_node.sh 3
-./joining_node.sh 4
+```Shell
+$ gnome-terminal -- .scalaris/bin/firstnode.sh
+$ gnome-terminal -- .scalaris/bin/joining_node.sh 2
+$ gnome-terminal -- .scalaris/bin/joining_node.sh 3
+$ gnome-terminal -- .scalaris/bin/joining_node.sh 4
+$
 ```
 
 Это запустит СУБД с 4 нодами, далее можно обращаться на [localhost:8000](http://localhost:8000) для доступа к субд.
@@ -64,25 +65,28 @@ Scalaris поддерживает транзакции и ACID наряду с S
 
 Положим пару строк в субд:
 
-```sh
-python2 python-api/scalaris_client.py -w hello world
-write(hello, world): ok
-python2 python-api/scalaris_client.py -w scalaris database
-write(hello, world): ok
+```Shell
+$ python2 scalaris/python-api/scalaris_client.py -w hello world
+$ write(hello, world): ok
+$ python2 scalaris/python-api/scalaris_client.py -w scalaris database
+$ write(hello, world): ok
+$
 ```
 
 Найдем строку с hello в субд:
 
-```sh
-python2 python-api/scalaris_client.py -r hello
-read(hello) = u'world'
+```Shell
+$ python2 scalaris/python-api/scalaris_client.py -r hello
+$ read(hello) = u'world'
+$
 ```
 
 Найдем несуществующую с world в субд:
 
 ```sh
-python2 python-api/scalaris_client.py -r world
-read(world) failed with not_found
+$ python2 scalaris/python-api/scalaris_client.py -r world
+$ read(world) failed with not_found
+$
 ```
 
 ### Завершение работы
@@ -90,16 +94,18 @@ read(world) failed with not_found
 Чтобы посмотреть все запущенные реплики можно использовать команду:
 
 ```sh
-./scalarisctl list
+$ ./scalaris/bin/scalarisctl list
+$
 ```
 
 Далее убиваем все созданные ноды:
 
 ```sh
-./scalarisctl -n node3@127.0.0.1 stop
-./scalarisctl -n node2@127.0.0.1 stop
-./scalarisctl -n node1@127.0.0.1 stop
-./scalarisctl -n firstnode@127.0.0.1 stop
+$ ./scalarisctl -n node3@127.0.0.1 stop
+$ ./scalarisctl -n node2@127.0.0.1 stop
+$ ./scalarisctl -n node1@127.0.0.1 stop
+$ ./scalarisctl -n firstnode@127.0.0.1 stop
+$
 ```
 
 ## Заключение

@@ -10,7 +10,7 @@
 
 ### Техническая обзор
 
-Scalaris это key-value хранилище, оно написано командой [разработчиков](https://github.com/scalaris-team/scalaris/blob/master/AUTHORS) из Берлина на языке [Erlang](https://ru.wikipedia.org/wiki/Erlang), который специально заточен под разработку распределенных систем c использованием многопоточности и прочими крутыми штуками. Документацию по бд можно найти на [офф. сайте](https://scalaris.zib.de/) и [гитхабе](https://github.com/scalaris-team/scalaris). Для взаимодействия с Scalaris можно использовать API на Erlang, Java, Python, Ruby, PHP, Perl или C++.
+Scalaris это key-value хранилище, оно написано командой [разработчиков](https://github.com/scalaris-team/scalaris/blob/master/AUTHORS) из Берлина на языке [Erlang](https://ru.wikipedia.org/wiki/Erlang), который специально заточен под разработку распределенных систем c использованием многопоточности и прочими крутыми штуками. Документацию по бд можно найти на [оф. сайте](https://scalaris.zib.de/) и [гитхабе](https://github.com/scalaris-team/scalaris). Для взаимодействия с Scalaris можно использовать API на Erlang, Java, Python, Ruby, PHP, Perl или C++.
 
 А также GUI в браузере.
 
@@ -22,7 +22,11 @@ Scalaris это key-value хранилище, оно написано коман
 
 Scalaris является NoSql субд, с поддержкой CP из CAP теоремы. Разработчики выбрали осознанный отказ от доступности, так как это должно было существенно помочь разработчикам веб-сервисов [[1.1](https://github.com/scalaris-team/scalaris/blob/master/user-dev-guide/main.pdf)].
 
-Scalaris использует [DHT](https://en.wikipedia.org/wiki/Distributed_hash_table) для хранения и поиска данных, что позволяет автоматически распределять файлы БД по разным носителям. Субд организует реплики в топологию кольца и использует [Метрику Вивальди](https://en.wikipedia.org/wiki/Vivaldi_coordinates) для оптимизации производительности.
+Scalaris состоит из 4 слоев каждый из которых поддерживает определенные функции
+
+![ScalarisDataStorage](pic/ScalarisLayers.png)
+
+[DHT](https://en.wikipedia.org/wiki/Distributed_hash_table) Используется для хранения и поиска данных, что позволяет автоматически распределять файлы БД по разным носителям. Субд организует реплики в топологию кольца и использует [Метрику Вивальди](https://en.wikipedia.org/wiki/Vivaldi_coordinates) для оптимизации производительности.
 Об этом можно почтитать по ссылкам, к сожалению официальная документация ой все...
 
 ![ScalarisDataStorage](pic/ScalarisDataStore.png)
@@ -40,6 +44,63 @@ Scalaris поддерживает транзакции и ACID наряду с S
 ![ScalarisPaxosCommit](pic/ScalarisPaxos.png)
 
 ## Практика
+
+### Запуск
+
+Для поднятия субд с несколькими рекликами сначала соберем проект с гитхаба как в документации [[2.1-2.3](https://github.com/scalaris-team/scalaris/blob/master/user-dev-guide/main.pdf)] и запустим следующие команды и директории scalaris/bin:
+
+```sh
+./firstnode.sh
+./joining_node.sh 2
+./joining_node.sh 3
+./joining_node.sh 4
+```
+
+Это запустит СУБД с 4 нодами, далее можно обращаться на [localhost:8000](http://localhost:8000) для доступа к субд.
+
+### Запросы к СУБД
+
+Как и сказано раньше запросы можно делать из браузера, или одного из предоставленного API (я выбрал python CLI [[4.2.2](https://github.com/scalaris-team/scalaris/blob/master/user-dev-guide/main.pdf)]).
+
+Положим пару строк в субд:
+
+```sh
+python2 python-api/scalaris_client.py -w hello world
+write(hello, world): ok
+python2 python-api/scalaris_client.py -w scalaris database
+write(hello, world): ok
+```
+
+Найдем строку с hello в субд:
+
+```sh
+python2 python-api/scalaris_client.py -r hello
+read(hello) = u'world'
+```
+
+Найдем несуществующую с world в субд:
+
+```sh
+python2 python-api/scalaris_client.py -r world
+read(world) failed with not_found
+```
+
+### Завершение работы
+
+Чтобы посмотреть все запущенные реплики можно использовать команду:
+
+```sh
+./scalarisctl list
+```
+
+Далее убиваем все созданные ноды:
+
+```sh
+./scalarisctl -n node3@127.0.0.1 stop
+./scalarisctl -n node2@127.0.0.1 stop
+./scalarisctl -n node1@127.0.0.1 stop
+./scalarisctl -n firstnode@127.0.0.1 stop
+```
 
 ## Заключение
 
